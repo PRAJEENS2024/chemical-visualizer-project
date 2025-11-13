@@ -1,0 +1,12 @@
+Equipment Name,Type,Flowrate,Pressure,Temperature
+Reactor-301,Reactor,95.0,145.0,295.8
+Reactor-302,Reactor,98.5,147.2,298.1
+Pump-A01,Pump,175.0,65.0,90.0
+Pump-A02,Pump,172.8,64.1,89.5
+Vessel-T100,Vessel,0.0,80.0,160.0
+Vessel-T101,Vessel,0.0,80.5,161.2
+Vessel-T102,Vessel,0.0,79.8,159.9
+HeatExchanger-H201,HeatExchanger,130.0,55.0,210.0
+Compressor-C800,Compressor,210.0,310.0,125.0
+Pump-A03,Pump,180.0,66.0,91.0
+Reactor-303,Reactor,96.2,146.0,296.5
