@@ -2,7 +2,8 @@
 import axios from 'axios';
 
 // Your Django backend URL
-const API_URL = 'http://127.0.0.1:8000/api'; 
+const API_URL = 'https://chemical-api-74nj.onrender.com/api'; 
+
 
 const axiosInstance = axios.create({
     baseURL: API_URL,
