@@ -1,0 +1,21 @@
+# Ignore all venv folders
+venv/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore Node.js dependencies
+node_modules/
+
+# Ignore build/dist folders
+build/
+dist/
+
+# Ignore local files
+.DS_Store
+db.sqlite3
+*.log
+
+# Ignore OS-specific files
+.vscode/
