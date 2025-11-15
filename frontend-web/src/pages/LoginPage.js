@@ -5,8 +5,8 @@ import { useAuth } from '../context/AuthProvider';
 import axios from 'axios'; // We use raw axios here, not the instance
 
 // Hardcode backend URLs
-const LOGIN_URL = 'http://127.0.0.1:8000/api/token/';
-const REGISTER_URL = 'http://127.0.0.1:8000/api/register/';
+const LOGIN_URL = 'https://chemical-api-74nj.onrender.com/api/token/';
+const REGISTER_URL = 'https://chemical-api-74nj.onrender.com/api/register/';
 
 const LoginPage = () => {
     const { setAuth } = useAuth(); // Get the login function from our context
