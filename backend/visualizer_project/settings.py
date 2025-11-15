@@ -139,9 +139,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # (Add this entire block to the bottom of backend/visualizer_project/settings.py)
 
 # Allow React frontend (running on port 3000) to access the API
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 # Django REST Framework Settings
