@@ -1,3 +1,4 @@
+# backend/api/utils.py
 import pandas as pd
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
@@ -11,6 +12,7 @@ import io
 def analyze_csv(csv_file):
     try:
         df = pd.read_csv(csv_file)
+        df.columns = df.columns.str.strip()
         
         total_count = len(df)
         avg_flowrate = df['Flowrate'].mean()
@@ -18,19 +20,22 @@ def analyze_csv(csv_file):
         avg_temperature = df['Temperature'].mean()
         type_distribution = df['Type'].value_counts().to_dict()
         
-        # --- NEW: Safety Alerts Logic ---
+        # Safety Alerts Logic
         alerts = []
         MAX_PRESSURE = 120.0
         MAX_TEMP = 200.0
         
         for index, row in df.iterrows():
             if row['Pressure'] > MAX_PRESSURE:
-                alerts.append(f"CRITICAL: {row['Equipment Name']} - High Pressure ({row['Pressure']})")
+                # Format: CRITICAL: Pump-01 (Pressure: 150.0 psi > 120.0 psi)
+                alerts.append(f"CRITICAL: {row['Equipment Name']} (Pressure: {row['Pressure']} psi > {MAX_PRESSURE} psi)")
             if row['Temperature'] > MAX_TEMP:
-                alerts.append(f"WARNING: {row['Equipment Name']} - High Temp ({row['Temperature']})")
+                # Format: WARNING: Pump-01 (Temp: 250.0 °C > 200.0 °C)
+                alerts.append(f"WARNING: {row['Equipment Name']} (Temp: {row['Temperature']} °C > {MAX_TEMP} °C)")
         
-        # Limit to top 5 alerts
         alerts = alerts[:5]
+
+        raw_data = df[['Equipment Name', 'Type', 'Flowrate', 'Pressure', 'Temperature']].fillna(0).to_dict(orient='records')
 
         summary = {
             'total_count': total_count,
@@ -38,14 +43,14 @@ def analyze_csv(csv_file):
             'avg_pressure': round(avg_pressure, 2),
             'avg_temperature': round(avg_temperature, 2),
             'type_distribution': type_distribution,
-            'alerts': alerts, # Add alerts to the result
+            'alerts': alerts,
+            'raw_data': raw_data,
         }
         return summary
         
     except Exception as e:
         print(f"Error analyzing CSV: {e}")
         return None
-
 
 def generate_matplotlib_chart(type_distribution):
     types = list(type_distribution.keys())
@@ -69,8 +74,10 @@ def generate_pdf_report(history_instance):
     doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
     elements = []
     styles = getSampleStyleSheet()
+    
     elements.append(Paragraph(f"Analysis Report: {history_instance.file_name}", styles['h1']))
     elements.append(Paragraph(f"Generated on: {history_instance.uploaded_at.strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+    
     elements.append(Paragraph("Summary Statistics", styles['h2']))
     summary_data = [
         ['Metric', 'Value'],
@@ -90,6 +97,12 @@ def generate_pdf_report(history_instance):
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]))
     elements.append(summary_table)
+    
+    if summary.get('alerts'):
+        elements.append(Paragraph("Safety Alerts", styles['h2']))
+        for alert in summary['alerts']:
+            elements.append(Paragraph(f"• {alert}", styles['Normal']))
+
     elements.append(Paragraph("Equipment Type Distribution", styles['h2']))
     type_dist = summary.get('type_distribution', {})
     type_data = [['Equipment Type', 'Count']] + list(type_dist.items())
@@ -104,10 +117,12 @@ def generate_pdf_report(history_instance):
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]))
     elements.append(type_table)
+    
     elements.append(Paragraph("Distribution Chart", styles['h2']))
     chart_buffer = generate_matplotlib_chart(type_dist)
     chart_image = Image(chart_buffer, width=6*inch, height=3.75*inch)
     elements.append(chart_image)
+    
     doc.build(elements)
     pdf_buffer.seek(0)
     return pdf_buffer

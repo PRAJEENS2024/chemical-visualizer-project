@@ -1,3 +1,4 @@
+// frontend-web/src/components/Dashboard/Summary.js
 import React from 'react';
 
 const SummaryCard = ({ title, value, unit }) => (
@@ -28,10 +29,16 @@ const Summary = ({ summary, fileName }) => {
             {/* SAFETY ALERTS SECTION */}
             {summary.alerts && summary.alerts.length > 0 && (
                 <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <h4 className="text-red-700 dark:text-red-400 font-bold mb-2 flex items-center gap-2">
-                        ⚠️ Safety Alerts
-                    </h4>
-                    <ul className="list-disc list-inside text-sm text-red-600 dark:text-red-300">
+                    <div className="flex flex-col mb-3">
+                        <h4 className="text-red-700 dark:text-red-400 font-bold flex items-center gap-2">
+                            ⚠️ Safety Alerts
+                        </h4>
+                        {/* Explanatory Text */}
+                        <p className="text-xs text-red-600 dark:text-red-300 mt-1 opacity-80">
+                            Triggers: Pressure &gt; 120.0 psi OR Temperature &gt; 200.0 °C
+                        </p>
+                    </div>
+                    <ul className="list-disc list-inside text-sm text-red-600 dark:text-red-300 space-y-1">
                         {summary.alerts.map((alert, index) => (
                             <li key={index}>{alert}</li>
                         ))}

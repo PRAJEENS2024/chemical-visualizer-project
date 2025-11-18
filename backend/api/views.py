@@ -1,15 +1,13 @@
-# (This is backend/api/views.py)
-
+# backend/api/views.py
 from rest_framework import generics, status, views
 from rest_framework.response import Response
-# Added IsAuthenticated here
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-import pandas as pd # Added pandas import
+from rest_framework.views import APIView
+import pandas as pd
 
-# Import our models, serializers, and utils
 from .models import UploadHistory
 from .serializers import UserSerializer, UploadHistorySerializer
 from .utils import analyze_csv, generate_pdf_report
@@ -140,3 +138,33 @@ class ExportExcelView(views.APIView):
             return response
         except Exception as e:
              return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# 7. Update Profile View
+class UpdateProfileView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            # We manually construct the data to ensure no serializer issues
+            user_data = {
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+                'username': user.username
+            }
+            return Response(user_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Profile Fetch Error: {e}")
+            return Response({"error": "Failed to load profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def put(self, request):
+        user = request.user
+        data = request.data
+        
+        if 'first_name' in data: user.first_name = data['first_name']
+        if 'last_name' in data: user.last_name = data['last_name']
+        if 'email' in data: user.email = data['email']
+        
+        user.save()
+        return Response({"message": "Profile updated successfully"}, status=status.HTTP_200_OK)

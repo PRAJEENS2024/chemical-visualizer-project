@@ -1,14 +1,17 @@
+# backend/api/serializers.py
 from rest_framework import serializers
 from .models import UploadHistory
 from django.contrib.auth.models import User
 
 class UserSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
-    email = serializers.EmailField(required=True)
+    # Explicitly define fields to ensure they are included in response
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
 
     class Meta:
         model = User
+        # Important: These keys must match what the frontend expects
         fields = ('id', 'username', 'password', 'first_name', 'last_name', 'email')
         extra_kwargs = {'password': {'write_only': True}}
 
@@ -16,9 +19,9 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            email=validated_data['email']
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+            email=validated_data.get('email', '')
         )
         return user
 

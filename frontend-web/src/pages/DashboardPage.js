@@ -1,8 +1,7 @@
-// src/pages/DashboardPage.js
+// frontend-web/src/pages/DashboardPage.js
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosConfig';
-import Header from '../components/Layout/Header'; // Import the new Header
-
+import Header from '../components/Layout/Header';
 import Upload from '../components/Dashboard/Upload';
 import Summary from '../components/Dashboard/Summary';
 import Charts from '../components/Dashboard/Charts';
@@ -74,7 +73,11 @@ const DashboardPage = () => {
                         {summaryData ? (
                             <>
                                 <Summary summary={summaryData.summary_stats} fileName={summaryData.file_name} />
-                                <Charts summary={summaryData.summary_stats} />
+                                {/* Pass raw data directly to charts */}
+                                <Charts 
+                                    summary={summaryData.summary_stats} 
+                                    rawData={summaryData.summary_stats.raw_data} 
+                                />
                             </>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 text-center">

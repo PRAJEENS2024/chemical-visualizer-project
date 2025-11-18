@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider';
+import { useTheme } from '../context/ThemeContext'; // Import Theme Context
+import { FiSun, FiMoon } from 'react-icons/fi'; // Import Icons
 import axios from 'axios';
-
 
 // LIVE Render URLs
 const LOGIN_URL = 'https://chemical-api-74nj.onrender.com/api/token/';
@@ -11,11 +12,11 @@ const REGISTER_URL = 'https://chemical-api-74nj.onrender.com/api/register/';
 
 const LoginPage = () => {
     const { setAuth } = useAuth();
+    const { theme, toggleTheme } = useTheme(); // Use Theme Hook
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || '/';
 
-    // Form States
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -43,7 +44,6 @@ const LoginPage = () => {
                 });
                 setIsRegistering(false);
                 setError('Success! Please log in with your new account.');
-                // Clear sensitive fields
                 setFormData(prev => ({ ...prev, password: '' }));
             } else {
                 const response = await axios.post(LOGIN_URL, JSON.stringify({
@@ -56,17 +56,26 @@ const LoginPage = () => {
             }
         } catch (err) {
             const msg = err.response?.data ? JSON.stringify(err.response.data) : 'Operation failed.';
-            setError(msg.replace(/["{}]/g, '')); // Clean up error message
+            setError(msg.replace(/["{}]/g, ''));
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-slate-100 dark:bg-slate-900 transition-colors p-4">
+        <div className="flex items-center justify-center min-h-screen bg-slate-100 dark:bg-slate-900 transition-colors p-4 relative">
+            
+            {/* THEME TOGGLE BUTTON (Top Right) */}
+            <button 
+                onClick={toggleTheme}
+                className="absolute top-6 right-6 p-3 rounded-full bg-white dark:bg-slate-800 shadow-md hover:shadow-lg text-slate-600 dark:text-slate-300 transition-all"
+            >
+                {theme === 'light' ? <FiMoon size={24} /> : <FiSun size={24} />}
+            </button>
+
             <div className="w-full max-w-md p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Chemical Viz</h1>
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">ChemSight</h1>
                     <p className="text-slate-500 dark:text-slate-400">
                         {isRegistering ? 'Create Professional Account' : 'Welcome Back'}
                     </p>
@@ -107,6 +116,5 @@ const LoginPage = () => {
         </div>
     );
 };
-
 
 export default LoginPage;
