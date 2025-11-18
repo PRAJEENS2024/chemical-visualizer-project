@@ -1,6 +1,6 @@
-// src/components/Dashboard/Upload.js
 import React, { useState } from 'react';
-import axiosInstance from '../../api/axiosConfig'; // Our auth-ready axios
+import axiosInstance from '../../api/axiosConfig';
+import { FiUploadCloud } from 'react-icons/fi';
 
 const Upload = ({ onUploadSuccess }) => {
     const [file, setFile] = useState(null);
@@ -13,56 +13,57 @@ const Upload = ({ onUploadSuccess }) => {
     };
 
     const handleUpload = async () => {
-        if (!file) {
-            setMessage('Please select a file first.');
-            return;
-        }
-
+        if (!file) return;
         const formData = new FormData();
         formData.append('file', file);
-
         setIsUploading(true);
         setMessage('Uploading...');
 
         try {
-            // Send the file to our backend
             const response = await axiosInstance.post('/upload-csv/', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
-            setMessage('Upload successful!');
-            onUploadSuccess(response.data); // Tell the parent (DashboardPage)
+            setMessage('Success!');
+            onUploadSuccess(response.data);
         } catch (err) {
-            setMessage('Upload failed. Check file or try again.');
-            console.error(err);
+            setMessage('Failed.');
         } finally {
             setIsUploading(false);
-            setFile(null); // Clear the file input
+            setFile(null);
         }
     };
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow">
-            <h3 className="mb-4 text-lg font-medium text-gray-900">Upload New CSV</h3>
+        <div className="p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                <FiUploadCloud /> Upload Data
+            </h3>
             <div className="space-y-4">
-                <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileChange}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                />
+                <div className="relative">
+                    <input
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileChange}
+                        className="block w-full text-sm text-slate-500 dark:text-slate-400
+                            file:mr-4 file:py-2.5 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-50 file:text-blue-700
+                            dark:file:bg-slate-700 dark:file:text-blue-400
+                            hover:file:bg-blue-100 dark:hover:file:bg-slate-600
+                            cursor-pointer"
+                    />
+                </div>
                 <button
                     onClick={handleUpload}
                     disabled={isUploading || !file}
-                    className="w-full px-4 py-2 font-medium text-white bg-indigo-600 rounded-md disabled:opacity-50 hover:bg-indigo-700"
+                    className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {isUploading ? 'Uploading...' : 'Upload and Analyze'}
+                    {isUploading ? 'Processing...' : 'Analyze CSV'}
                 </button>
-                {message && <p className="text-sm text-center text-gray-600">{message}</p>}
+                {message && <p className="text-sm text-center text-slate-600 dark:text-slate-400 animate-pulse">{message}</p>}
             </div>
         </div>
     );
 };
-
 export default Upload;

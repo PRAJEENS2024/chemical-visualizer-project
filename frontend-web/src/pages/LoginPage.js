@@ -2,114 +2,111 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider';
-import axios from 'axios'; // We use raw axios here, not the instance
+import axios from 'axios';
 
-// Hardcode backend URLs
+
+// LIVE Render URLs
 const LOGIN_URL = 'https://chemical-api-74nj.onrender.com/api/token/';
 const REGISTER_URL = 'https://chemical-api-74nj.onrender.com/api/register/';
 
 const LoginPage = () => {
-    const { setAuth } = useAuth(); // Get the login function from our context
+    const { setAuth } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const from = location.state?.from?.pathname || '/'; // Where to redirect after login
+    const from = location.state?.from?.pathname || '/';
 
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    // Form States
+    const [formData, setFormData] = useState({
+        username: '',
+        password: '',
+        first_name: '',
+        last_name: '',
+        email: ''
+    });
+    
     const [isRegistering, setIsRegistering] = useState(false);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        setLoading(true);
+        setError('');
         try {
             if (isRegistering) {
-                // --- REGISTER LOGIC ---
-                await axios.post(REGISTER_URL, 
-                    JSON.stringify({ username, password }),
-                    { headers: { 'Content-Type': 'application/json' }}
-                );
-                // After registering, toggle to login mode
+                await axios.post(REGISTER_URL, JSON.stringify(formData), { 
+                    headers: { 'Content-Type': 'application/json' } 
+                });
                 setIsRegistering(false);
-                setError('Registration successful! Please log in.');
+                setError('Success! Please log in with your new account.');
+                // Clear sensitive fields
+                setFormData(prev => ({ ...prev, password: '' }));
             } else {
-                // --- LOGIN LOGIC ---
-                const response = await axios.post(LOGIN_URL, 
-                    JSON.stringify({ username, password }),
-                    { headers: { 'Content-Type': 'application/json' }}
-                );
-
-                const accessToken = response?.data?.access;
-                const refreshToken = response?.data?.refresh;
-
-                // Save to global context and local storage
-                setAuth({ username, accessToken, refreshToken });
-
-                setUsername('');
-                setPassword('');
-                navigate(from, { replace: true }); // Send user to dashboard
+                const response = await axios.post(LOGIN_URL, JSON.stringify({
+                    username: formData.username, 
+                    password: formData.password
+                }), { headers: { 'Content-Type': 'application/json' } });
+                
+                setAuth({ username: formData.username, accessToken: response.data.access });
+                navigate(from, { replace: true });
             }
         } catch (err) {
-            // Handle errors
-            if (!err?.response) {
-                setError('No Server Response');
-            } else if (err.response?.status === 400) {
-                setError('Missing Username or Password');
-            } else if (err.response?.status === 401) {
-                setError('Unauthorized. Check credentials.');
-            } else {
-                setError('Login Failed');
-            }
+            const msg = err.response?.data ? JSON.stringify(err.response.data) : 'Operation failed.';
+            setError(msg.replace(/["{}]/g, '')); // Clean up error message
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold text-center text-gray-900">
-                    {isRegistering ? 'Register New Account' : 'Sign in'}
-                </h2>
-                {error && <p className="text-red-500 text-center">{error}</p>}
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Username</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm"
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        className="w-full px-4 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-                    >
-                        {isRegistering ? 'Register' : 'Sign In'}
-                    </button>
-                    <p className="text-sm text-center">
-                        <button
-                            type="button"
-                            onClick={() => setIsRegistering(!isRegistering)}
-                            className="font-medium text-indigo-600 hover:text-indigo-500"
-                        >
-                            {isRegistering ? 'Already have an account? Sign In' : "Don't have an account? Register"}
-                        </button>
+        <div className="flex items-center justify-center min-h-screen bg-slate-100 dark:bg-slate-900 transition-colors p-4">
+            <div className="w-full max-w-md p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Chemical Viz</h1>
+                    <p className="text-slate-500 dark:text-slate-400">
+                        {isRegistering ? 'Create Professional Account' : 'Welcome Back'}
                     </p>
+                </div>
+
+                {error && (
+                    <div className={`p-3 mb-6 rounded-lg text-sm font-medium text-center ${error.includes('Success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {error}
+                    </div>
+                )}
+
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                    {isRegistering && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <input name="first_name" placeholder="First Name" onChange={handleChange} required className="input-field" />
+                            <input name="last_name" placeholder="Last Name" onChange={handleChange} required className="input-field" />
+                        </div>
+                    )}
+                    
+                    {isRegistering && (
+                        <input name="email" type="email" placeholder="Work Email" onChange={handleChange} required className="input-field" />
+                    )}
+
+                    <input name="username" type="text" placeholder="Username" value={formData.username} onChange={handleChange} required className="input-field" />
+                    <input name="password" type="password" placeholder="Password" value={formData.password} onChange={handleChange} required className="input-field" />
+
+                    <button type="submit" disabled={loading} className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-all disabled:opacity-70">
+                        {loading ? 'Processing...' : (isRegistering ? 'Register' : 'Sign In')}
+                    </button>
                 </form>
+                
+                <div className="mt-6 text-center">
+                    <button onClick={() => { setIsRegistering(!isRegistering); setError(''); }} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                        {isRegistering ? 'Already have an account? Sign In' : "Need an account? Register"}
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
+
 
 export default LoginPage;

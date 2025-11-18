@@ -6,6 +6,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.http import HttpResponse
+import pandas as pd
 
 # Import our models, serializers, and utils
 from .models import UploadHistory
@@ -117,3 +120,42 @@ class DownloadReportView(views.APIView):
         response['Content-Disposition'] = f'attachment; filename="report_{history_instance.file_name}_{pk}.pdf"'
         
         return response 
+
+
+class ExportExcelView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk, *args, **kwargs):
+        history_instance = get_object_or_404(UploadHistory, pk=pk, user=request.user)
+        
+        # Re-open the CSV file from storage
+        import pandas as pd
+        df = pd.read_csv(history_instance.csv_file)
+        
+        # Create HTTP response with Excel content type
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="data_{history_instance.file_name}.xlsx"'
+        
+        # Write data to the response
+        df.to_excel(response, index=False)
+        return response
+    
+    class ExportExcelView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk, *args, **kwargs):
+        history_instance = get_object_or_404(UploadHistory, pk=pk, user=request.user)
+        
+        # Re-open the CSV file
+        try:
+            df = pd.read_csv(history_instance.csv_file)
+            
+            # Create HTTP response with Excel content type
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename="data_{history_instance.file_name}.xlsx"'
+            
+            # Write data to the response
+            df.to_excel(response, index=False)
+            return response
+        except Exception as e:
+             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
