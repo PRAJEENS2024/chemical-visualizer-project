@@ -2,8 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Layout/Header';
-import { FiActivity, FiShield, FiCloud, FiCheck, FiArrowRight, FiTrendingUp, FiDatabase } from 'react-icons/fi';
-
+import { FiActivity, FiShield, FiArrowRight, FiTrendingUp, FiDatabase } from 'react-icons/fi';
 const FeatureCard = ({ icon, title, desc, color }) => (
     <div className="p-8 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
         <div className={`w-14 h-14 ${color} rounded-2xl flex items-center justify-center text-white text-2xl mb-6 shadow-lg`}>
