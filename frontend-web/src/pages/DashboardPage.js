@@ -50,7 +50,8 @@ const DashboardPage = () => {
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
             <Header />
             
-            <main className="container mx-auto px-6 py-8">
+            {/* FIX IS HERE: Changed 'py-8' to 'pt-24 pb-8' to clear the fixed header */}
+            <main className="container mx-auto px-6 pt-24 pb-8">
                 {error && (
                     <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded shadow-sm">
                         {error}
@@ -73,7 +74,6 @@ const DashboardPage = () => {
                         {summaryData ? (
                             <>
                                 <Summary summary={summaryData.summary_stats} fileName={summaryData.file_name} />
-                                {/* Pass raw data directly to charts */}
                                 <Charts 
                                     summary={summaryData.summary_stats} 
                                     rawData={summaryData.summary_stats.raw_data} 
