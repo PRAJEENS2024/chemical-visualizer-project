@@ -119,25 +119,34 @@ class DownloadReportView(views.APIView):
         return response
 
 # 6. Export Excel View
+
 class ExportExcelView(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk, *args, **kwargs):
         history_instance = get_object_or_404(UploadHistory, pk=pk, user=request.user)
         
-        # Re-open the CSV file
         try:
-            df = pd.read_csv(history_instance.csv_file)
+            # ROBUST FIX: Try to get data from the database JSON first (Reliable)
+            raw_data = history_instance.summary_stats.get('raw_data')
             
-            # Create HTTP response with Excel content type
+            if raw_data:
+                # Create DataFrame directly from the JSON data
+                df = pd.DataFrame(raw_data)
+            else:
+                # Fallback: If old data, try reading the file
+                df = pd.read_csv(history_instance.csv_file)
+            
+            # Create HTTP response
             response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             response['Content-Disposition'] = f'attachment; filename="data_{history_instance.file_name}.xlsx"'
             
-            # Write data to the response
+            # Write data using openpyxl
             df.to_excel(response, index=False)
             return response
         except Exception as e:
-             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+             print(f"Excel Export Error: {e}")
+             return Response({"error": f"Could not export Excel: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # 7. Update Profile View
 class UpdateProfileView(views.APIView):
